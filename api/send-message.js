@@ -5,7 +5,7 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { name, email, date, packageType, message } = req.body;
+    const { name, email, link, brief } = req.body;
 
     // 2. Access the environment variables safely on the server side
     const BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
@@ -16,7 +16,7 @@ export default async function handler(req, res) {
     }
 
     // 3. Format the text payload
-    const text = `📬 New Booking request!\n\n👤 Name: ${name}\n📧 Email: ${email}\n📅 Date: ${date}\n📦 Package: ${packageType}\n💬 Message: ${message}`;
+    const text = `📬 New Brief from OGRE!\n\n👤 Name: ${name}\n📧 Email: ${email}\n🔗 Footage Link: ${link}\n🎬 Brief: ${brief}`;
 
     // 4. Send the request from this backend environment to Telegram
     const telegramUrl = `https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`;
