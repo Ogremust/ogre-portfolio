@@ -23,6 +23,7 @@ body{
   line-height:1.55;
   overflow-x:hidden;
   cursor:none;
+  overscroll-behavior-y:none;
 }
 .page *{cursor:none!important}
 button,a,input,textarea{font:inherit}
@@ -543,11 +544,11 @@ body.cclick #cur-ring{width:32px;height:32px;transform:translate(-50%,-50%) rota
 .section-head p{max-width:420px;color:var(--muted)}
 .section-band{border-radius:30px;padding:30px;background:linear-gradient(180deg,rgba(255,255,255,.04),rgba(255,255,255,.016));border:1px solid rgba(255,255,255,.08)}
 
-.portfolio-wrap{position:relative;overflow:hidden;border-radius:28px;padding:12px 0}
+.portfolio-wrap{position:relative;overflow:hidden;border-radius:28px;padding:12px 0;overscroll-behavior:none;touch-action:pan-y;}
 .portfolio-wrap::before,.portfolio-wrap::after{content:"";position:absolute;top:0;bottom:0;width:100px;z-index:4;pointer-events:none}
 .portfolio-wrap::before{left:0;background:linear-gradient(90deg,#1a1a19,transparent)}
 .portfolio-wrap::after{right:0;background:linear-gradient(270deg,#1a1a19,transparent)}
-.river{display:flex;gap:16px;width:max-content;padding:8px 0;animation:riverLeft 42s linear infinite;}
+.river{display:flex;gap:16px;width:max-content;padding:8px 0;animation:riverLeft 42s linear infinite;touch-action:none;}
 .river.reverse{animation:riverRight 48s linear infinite}
 .portfolio-wrap:hover .river{animation-play-state:paused}
 
