@@ -544,19 +544,33 @@ body.cclick #cur-ring{width:32px;height:32px;transform:translate(-50%,-50%) rota
 .section-head p{max-width:420px;color:var(--muted)}
 .section-band{border-radius:30px;padding:30px;background:linear-gradient(180deg,rgba(255,255,255,.04),rgba(255,255,255,.016));border:1px solid rgba(255,255,255,.08)}
 
-.portfolio-wrap{position:relative;overflow:hidden;border-radius:28px;padding:12px 0;overscroll-behavior:none;touch-action:pan-y;}
+.portfolio-wrap{position:relative;overflow:hidden;border-radius:28px;padding:12px 0;}
 .portfolio-wrap::before,.portfolio-wrap::after{content:"";position:absolute;top:0;bottom:0;width:100px;z-index:4;pointer-events:none}
 .portfolio-wrap::before{left:0;background:linear-gradient(90deg,#1a1a19,transparent)}
 .portfolio-wrap::after{right:0;background:linear-gradient(270deg,#1a1a19,transparent)}
-.river{display:flex;gap:16px;width:max-content;padding:8px 0;animation:riverLeft 42s linear infinite;touch-action:none;}
+.river{display:flex;gap:16px;width:max-content;padding:8px 0;animation:riverLeft 42s linear infinite;}
 .river.reverse{animation:riverRight 48s linear infinite}
 .portfolio-wrap:hover .river{animation-play-state:paused}
 
 @media(max-width:980px){
-  .portfolio-wrap { overflow-x: auto; overflow-y: hidden; -webkit-overflow-scrolling: touch; scroll-snap-type: x mandatory; padding: 12px 0; }
-  .portfolio-wrap::before, .portfolio-wrap::after { display: none; }
-  .river, .river.reverse { animation: none; width: max-content; flex-wrap: nowrap; overflow: visible; scroll-snap-type: none; }
-  .river .reel, .river .image-card { scroll-snap-align: start; flex-shrink: 0; }
+  .section-band { overflow: visible; padding: 20px 0; }
+  .portfolio-wrap{
+    overflow-x: auto;
+    overflow-y: visible;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-x: contain;
+    border-radius: 0;
+    padding: 12px 20px;
+  }
+  .portfolio-wrap::before,
+  .portfolio-wrap::after { display: none; }
+  .river {
+    animation: none;
+    width: max-content;
+    flex-wrap: nowrap;
+    gap: 12px;
+    padding: 4px 0;
+  }
   .river.reverse { display: none; }
 }
 
