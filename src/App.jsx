@@ -325,7 +325,8 @@ export default function OgrePortfolio() {
     const el = document.getElementById(id);
     if (!el) return;
     const navRect = document.querySelector(".nav-inner")?.getBoundingClientRect();
-    window.scrollTo({ top: el.getBoundingClientRect().top + window.scrollY - (navRect ? navRect.top + navRect.height / 2 : 90), behavior: "smooth" });
+    const isMobile = window.innerWidth <= 980;
+    window.scrollTo({ top: el.getBoundingClientRect().top + window.scrollY - (navRect ? navRect.top + navRect.height / 2 : 90), behavior: isMobile ? "instant" : "smooth" });
     setNavOpen(false);
   };
 

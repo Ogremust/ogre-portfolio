@@ -552,6 +552,12 @@ body.cclick #cur-ring{width:32px;height:32px;transform:translate(-50%,-50%) rota
 .river.reverse{animation:riverRight 48s linear infinite}
 .portfolio-wrap:hover .river{animation-play-state:paused}
 
+@media(max-width:980px){
+  .river, .river.reverse { animation-play-state: paused; animation: none; flex-wrap: nowrap; overflow-x: auto; width: 100%; -webkit-overflow-scrolling: touch; scroll-snap-type: x mandatory; }
+  .river .reel, .river .image-card { scroll-snap-align: start; flex-shrink: 0; }
+  .portfolio-wrap { overflow-x: auto; overflow-y: hidden; }
+}
+
 .reel {
   width: 198px;
   height: 352px;
