@@ -248,30 +248,27 @@ export default function OgrePortfolio() {
   const ring = useRef({ x: -999, y: -999 });
   const raf = useRef(null);
 
-	const handleTelegramSubmit = async (formData) => {
-	  try {
-		// We target our local relative API route instead of api.telegram.org
-		const response = await fetch('/api/send-message', {
-		  method: 'POST',
-		  headers: {
-			'Content-Type': 'application/json',
-		  },
-		  body: JSON.stringify(formData),
-		});
-
-		const result = await response.json();
-
-		if (!response.ok) {
-		  throw new Error(result.error || 'Failed to send message');
-		}
-
-		return true;
-	  } catch (error) {
-		console.error('Form submission error:', error);
-		alert('Something went wrong sending your message. Please try again.');
-		return false;
-	  }
-	};
+  const handleTelegramSubmit = async (e) => {
+    e.preventDefault();
+    if (formStatus === "sending") return;
+    setFormStatus("sending");
+    try {
+      const response = await fetch('/api/send-message', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData),
+      });
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.error || 'Failed to send message');
+      setFormStatus("sent");
+      setFormData({ name: "", email: "", link: "", brief: "" });
+      setTimeout(() => setFormStatus("idle"), 4000);
+    } catch (error) {
+      console.error('Form submission error:', error);
+      setFormStatus("idle");
+      alert('Something went wrong. Please try again.');
+    }
+  };
 
   useEffect(() => {
     const lerp = (a, b, t) => a + (b - a) * t;
@@ -566,7 +563,7 @@ export default function OgrePortfolio() {
               <textarea required placeholder="What are we cutting?" value={formData.brief} onChange={e => setFormData({...formData, brief: e.target.value})} />
               <div className="booking-actions">
                 <button className="btn" type="submit" disabled={formStatus === "sending"}>
-                  {formStatus === "idle" ? "Send Brief" : formStatus === "sending" ? "Sending..." : "Brief Sent!"}
+                  {formStatus === "idle" ? "Send Brief" : formStatus === "sending" ? "Sending…" : "Brief Sent ✓"}
                 </button>
               </div>
             </form>
@@ -587,6 +584,7 @@ export default function OgrePortfolio() {
                 <button className="modal-close" onClick={() => setActiveImage(null)}>x</button>
               </div>
               {activeImage.prompt && <div className="image-detail-block"><strong>Prompt</strong><div className="prompt-box">{activeImage.prompt}</div></div>}
+              {activeImage.context && <div className="image-detail-block"><strong>Performance Context</strong><p>{activeImage.context}</p></div>}
             </div>
           </div>
         </div>
