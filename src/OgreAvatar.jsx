@@ -1,131 +1,155 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
+import { useMediaQuery } from "./lib/hooks";
 
-// Eye centers as % of image — YOU NEED TO CALIBRATE THESE!
+/* Eye centres as a fraction of the image box. */
 const EYES = [
-  { id: "L", cx: 0.37, cy: 0.495 }, // left eye
-  { id: "R", cx: 0.637, cy: 0.495 }, // right eye
+  { id: "L", cx: 0.37, cy: 0.495 },
+  { id: "R", cx: 0.637, cy: 0.495 },
 ];
 
-const IRIS_SIZE = 0.07; 
+const IRIS_SIZE = 0.07;
 const EYEBALL_SIZE = 0.145;
+const MAX_SHIFT = 8;
+const MAX_HEAD_SHIFT = 10;
 
-const MAX_SHIFT = 8; // Increased slightly for better tracking range
-const MAX_HEAD_SHIFT = 10; 
-
-export default function OgreAvatar({
-  faceSrc,
-  eyeSrc,
-  eyeballSrc,
-  size = "480px",
-}) {
+/**
+ * Layered ogre avatar that tracks the cursor.
+ *
+ * All tracking is written straight to the DOM from a single rAF loop — the
+ * previous version called setState three times per mousemove, re-rendering
+ * React on every pointer event. The loop also parks itself once the pointer
+ * stops moving, so an idle page costs nothing.
+ */
+export default function OgreAvatar({ faceSrc, eyeSrc, eyeballSrc }) {
   const containerRef = useRef(null);
-  const [light, setLight] = useState({ x: 50, y: 40 }); 
-  
-  // CHANGED: One single offset for BOTH eyes so they stay locked together
-  const [irisOffset, setIrisOffset] = useState({ dx: 0, dy: 0 }); 
-  const [headOffset, setHeadOffset] = useState({ dx: 0, dy: 0 }); 
+  const irisRefs = useRef([]);
+  const glowRef = useRef(null);
+
+  /* Pointer tracking is desktop-only, and re-evaluates live on resize.
+     Off it goes the cursor glow too: parked at its default 50%/40% the glow
+     sits squarely between the eyes and washes the irises out. */
+  const desktop = useMediaQuery("(hover: hover) and (pointer: fine) and (min-width: 901px)");
+  const reduced = useMediaQuery("(prefers-reduced-motion: reduce)");
+  const tracks = desktop && !reduced;
 
   useEffect(() => {
     const el = containerRef.current;
-    if (!el) return;
+    if (!el || !tracks) return undefined;
 
+    const irises = irisRefs.current;
     let rect = el.getBoundingClientRect();
-    
-    const updateRect = () => { rect = el.getBoundingClientRect(); };
-    window.addEventListener("resize", updateRect);
-    window.addEventListener("scroll", updateRect, { passive: true });
+    const target = { hx: 0, hy: 0, ix: 0, iy: 0, gx: 50, gy: 40 };
+    const current = { hx: 0, hy: 0, ix: 0, iy: 0, gx: 50, gy: 40 };
+    let raf = 0;
+    let idleFrames = 0;
 
-    const handleMove = (e) => {
+    const measure = () => {
+      rect = el.getBoundingClientRect();
+    };
+
+    const lerp = (a, b, t) => a + (b - a) * t;
+
+    const frame = () => {
+      let moved = false;
+      for (const k of ["hx", "hy", "ix", "iy", "gx", "gy"]) {
+        const next = lerp(current[k], target[k], 0.18);
+        if (Math.abs(next - current[k]) > 0.01) moved = true;
+        current[k] = next;
+      }
+
+      el.style.transform = `translate3d(${current.hx.toFixed(2)}px, ${current.hy.toFixed(2)}px, 0)`;
+      const iris = `translate3d(${current.ix.toFixed(2)}px, ${current.iy.toFixed(2)}px, 0)`;
+      for (const node of irises) if (node) node.style.transform = iris;
+      if (glowRef.current) {
+        glowRef.current.style.background = `radial-gradient(circle at ${current.gx.toFixed(1)}% ${current.gy.toFixed(1)}%, rgba(255,195,120,.45) 0%, rgba(255,145,65,.20) 25%, rgba(255,110,40,0) 60%)`;
+      }
+
+      // Park the loop after it settles; the next pointer move restarts it.
+      idleFrames = moved ? 0 : idleFrames + 1;
+      if (idleFrames > 8) {
+        raf = 0;
+        return;
+      }
+      raf = requestAnimationFrame(frame);
+    };
+
+    const wake = () => {
+      if (!raf) raf = requestAnimationFrame(frame);
+    };
+
+    const clamp = (v, lo, hi) => (v < lo ? lo : v > hi ? hi : v);
+
+    const onMove = (e) => {
       const cx = e.clientX - rect.left;
       const cy = e.clientY - rect.top;
-      const w = rect.width;
-      const h = rect.height;
 
-      setLight({
-        x: (cx / w) * 100,
-        y: (cy / h) * 100,
-      });
+      /* Unclamped, a pointer far above the avatar (i.e. after scrolling down
+         the page) drove the irises clean out of the socket and exposed the
+         white eyeball. Travel is capped, and upward travel more tightly than
+         downward so the eyes read as looking down the page. */
+      const nx = clamp((cx / rect.width) * 2 - 1, -1, 1);
+      const ny = clamp((cy / rect.height) * 2 - 1, -0.5, 1);
 
-      // Normalize mouse position from -1 to 1 based on container center
-      const normalizedX = (cx / w) * 2 - 1;
-      const normalizedY = (cy / h) * 2 - 1;
-
-      // Head opposes cursor
-      setHeadOffset({
-        dx: normalizedX * -MAX_HEAD_SHIFT, 
-        dy: normalizedY * -MAX_HEAD_SHIFT
-      });
-
-      // CHANGED: Eyes perfectly follow cursor in lockstep
-      setIrisOffset({
-        dx: normalizedX * MAX_SHIFT,
-        dy: normalizedY * MAX_SHIFT,
-      });
+      target.gx = clamp((cx / rect.width) * 100, 0, 100);
+      target.gy = clamp((cy / rect.height) * 100, 0, 100);
+      target.hx = nx * -MAX_HEAD_SHIFT;
+      target.hy = ny * -MAX_HEAD_SHIFT;
+      target.ix = nx * MAX_SHIFT;
+      target.iy = ny * MAX_SHIFT;
+      idleFrames = 0;
+      wake();
     };
 
-    window.addEventListener("mousemove", handleMove);
-    
+    window.addEventListener("mousemove", onMove, { passive: true });
+    window.addEventListener("resize", measure, { passive: true });
+    window.addEventListener("scroll", measure, { passive: true });
+
     return () => {
-      window.removeEventListener("mousemove", handleMove);
-      window.removeEventListener("resize", updateRect);
-      window.removeEventListener("scroll", updateRect);
+      window.removeEventListener("mousemove", onMove);
+      window.removeEventListener("resize", measure);
+      window.removeEventListener("scroll", measure);
+      if (raf) cancelAnimationFrame(raf);
+      /* Clear inline transforms so the CSS idle drift can take over. */
+      el.style.transform = "";
+      for (const node of irises) if (node) node.style.transform = "";
     };
-  }, []);
+  }, [tracks]);
 
-  const shared = {
-    position: "absolute",
-    inset: 0,
-    width: "100%",
-    height: "100%",
-  };
+  const shared = { position: "absolute", inset: 0, width: "100%", height: "100%" };
 
   return (
-    <div
-      ref={containerRef}
-      style={{
-        position: "relative",
-        width: size,
-        height: size,
-        flexShrink: 0,
-        userSelect: "none",
-        transform: `translate(${headOffset.dx}px, ${headOffset.dy}px)`,
-        // Sped up transition slightly so the head doesn't feel floaty
-        transition: "transform 0.08s ease-out" 
-      }}
-    >
-      {/* ── Layer 1: Eyeball spheres (static) ── */}
+    /* Sizing lives in App.css (`--avatar-size`) rather than inline, so media
+       queries can shrink it — an inline style would outrank every rule. */
+    <div className={`ogre-avatar${tracks ? "" : " is-idle"}`} ref={containerRef}>
+      {/* Eyeball spheres */}
       <img
         src={eyeballSrc}
         alt=""
         aria-hidden="true"
         draggable={false}
-        style={{
-          ...shared,
-          objectFit: "cover",
-          mixBlendMode: "screen",
-          opacity: 0.9,
-          pointerEvents: "none",
-        }}
+        style={{ ...shared, objectFit: "cover", mixBlendMode: "screen", opacity: 0.9, pointerEvents: "none" }}
       />
 
-      {/* ── Layer 2: Iris × 2 (tracks cursor in lockstep) ── */}
-      {EYES.map((eye) => (
+      {/* Irises — translated in lockstep */}
+      {EYES.map((eye, i) => (
         <div
           key={eye.id}
+          className="ogre-iris"
+          ref={(n) => (irisRefs.current[i] = n)}
           style={{
             position: "absolute",
             left: `calc(${eye.cx * 100}% - ${(IRIS_SIZE * 100) / 2}%)`,
             top: `calc(${eye.cy * 100}% - ${(IRIS_SIZE * 100) / 2}%)`,
             width: `${IRIS_SIZE * 100}%`,
             height: `${IRIS_SIZE * 100}%`,
-            // CHANGED: Uses the single locked offset
-            transform: `translate(${irisOffset.dx}px, ${irisOffset.dy}px)`,
-            // Sped up eye transition for sharper tracking
-            transition: "transform 0.06s ease-out", 
             pointerEvents: "none",
-            willChange: "transform",
             borderRadius: "50%",
-            overflow: "hidden", 
+            overflow: "hidden",
+            /* Own stacking context so the iris `screen` blend composites against
+               transparency instead of the bright eyeball sphere underneath —
+               without this the irises wash out to solid white. */
+            isolation: "isolate",
+            transform: "translate3d(0,0,0)",
           }}
         >
           <img
@@ -133,30 +157,25 @@ export default function OgreAvatar({
             alt=""
             aria-hidden="true"
             draggable={false}
-            style={{
-              width: "100%",
-              height: "100%",
-              objectFit: "cover",
-              mixBlendMode: "screen",
-              display: "block",
-            }}
+            style={{ width: "100%", height: "100%", objectFit: "cover", mixBlendMode: "screen", display: "block" }}
           />
-          {/* THE CORNEA SHADER */}
           <div
             style={{
               position: "absolute",
               inset: 0,
-              background: "linear-gradient(180deg, rgba(5,2,0,0.85) 0%, transparent 40%, rgba(255,160,60,0.25) 100%)",
+              background:
+                "linear-gradient(180deg, rgba(5,2,0,.85) 0%, transparent 40%, rgba(255,160,60,.25) 100%)",
               pointerEvents: "none",
             }}
           />
         </div>
       ))}
 
-      {/* ── Layer 2.5: Eye Socket Volume Shader ── */}
+      {/* Socket volume shading */}
       {EYES.map((eye) => (
         <div
           key={`socket-${eye.id}`}
+          aria-hidden="true"
           style={{
             position: "absolute",
             left: `calc(${eye.cx * 100}% - ${(EYEBALL_SIZE * 100) / 2}%)`,
@@ -164,13 +183,14 @@ export default function OgreAvatar({
             width: `${EYEBALL_SIZE * 100}%`,
             height: `${EYEBALL_SIZE * 100}%`,
             borderRadius: "50%",
-            background: "radial-gradient(circle at 50% 120%, transparent 40%, rgba(5,2,0,0.6) 100%), linear-gradient(180deg, rgba(5,2,0,0.7) 0%, transparent 40%)",
+            background:
+              "radial-gradient(circle at 50% 120%, transparent 40%, rgba(5,2,0,.6) 100%), linear-gradient(180deg, rgba(5,2,0,.7) 0%, transparent 40%)",
             pointerEvents: "none",
           }}
         />
       ))}
 
-	 {/* ── Layer 3: Face mask (Solid Alpha Blend) ── */}
+      {/* Face */}
       <img
         src={faceSrc}
         alt="OGRE"
@@ -179,35 +199,30 @@ export default function OgreAvatar({
           ...shared,
           objectFit: "cover",
           pointerEvents: "none",
-          position: "absolute",
-          
-          // ADD THIS LINE:
-          filter: "hue-rotate(-10deg) saturate(0.85) contrast(1.05)"
+          filter: "hue-rotate(-10deg) saturate(.85) contrast(1.05)",
         }}
       />
 
-      {/* ── Layer 4: Cursor glow (Masked strictly to the face shape) ── */}
+      {/* Cursor glow, masked to the face silhouette. Pointer-driven only. */}
+      {tracks && (
       <div
+        ref={glowRef}
         aria-hidden="true"
         style={{
           ...shared,
-          position: "absolute",
-          borderRadius: "inherit",
           pointerEvents: "none",
-          background: `radial-gradient(
-            circle at ${light.x}% ${light.y}%,
-            rgba(255, 195, 120, 0.45) 0%,
-            rgba(255, 145, 65, 0.20) 25%,
-            rgba(255, 110, 40, 0) 60%
-          )`,
+          background:
+            "radial-gradient(circle at 50% 40%, rgba(255,195,120,.45) 0%, rgba(255,145,65,.20) 25%, rgba(255,110,40,0) 60%)",
           mixBlendMode: "screen",
-          transition: "background 0.1s linear",
           WebkitMaskImage: `url(${faceSrc})`,
           WebkitMaskSize: "cover",
           WebkitMaskPosition: "center",
           maskImage: `url(${faceSrc})`,
+          maskSize: "cover",
+          maskPosition: "center",
         }}
       />
+      )}
     </div>
   );
 }
