@@ -54,9 +54,12 @@ function ReelCard({ item, onOpen }) {
         />
         <span className="reel-scrim" aria-hidden="true" />
         <PlayGlyph />
-        {/* Badge carries the piece's own name (e.g. "Pet 1"); the category
-            lives on the filter chips, so repeating it here added nothing. */}
-        <span className="reel-type">{item.title}</span>
+        {/* Clip label, bottom-left over the scrim where contrast is guaranteed.
+            Carries the piece's own name — the category is on the filter chips. */}
+        <span className="reel-tag">
+          <span className="reel-tag-bar" aria-hidden="true" />
+          <span className="reel-tag-name">{item.title}</span>
+        </span>
         {item.metric && <span className="reel-metric">{item.metric}</span>}
       </span>
       {sub && (

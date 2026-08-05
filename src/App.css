@@ -977,6 +977,9 @@ a { color: inherit; }
   overflow: hidden;
   border: 1px solid var(--border);
   background: var(--bg-raised);
+  /* Own stacking context, or the rounded clip doesn't apply to the composited
+     scaled image on hover and its square corners cut across the top. */
+  isolation: isolate;
 }
 .reel-frame img {
   width: 100%;
@@ -1009,35 +1012,66 @@ a { color: inherit; }
 }
 .reel-card:hover .play-badge { opacity: 1; transform: translate(-50%, -50%) scale(1); }
 
-.reel-type,
 .reel-metric {
   position: absolute;
   top: 12px;
+  right: 12px;
   padding: 5px 11px;
   border-radius: 999px;
   font-size: 0.7rem;
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-}
-.reel-type {
-  left: 12px;
-  max-width: calc(100% - 24px);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  background: rgba(13, 13, 12, 0.78);
-  color: var(--ink);
-  border: 1px solid var(--border);
-}
-/* Leave room for the metric pill when both are present */
-.reel-metric ~ .reel-type,
-.reel-frame:has(.reel-metric) .reel-type { max-width: calc(60% - 12px); }
-.reel-metric {
-  right: 12px;
   background: var(--acid);
   color: #170d03;
 }
+
+/* ── Clip label ────────────────────────────
+   Sits bottom-left on the scrim, styled like a marker on an edit timeline:
+   an ember cue bar against a blurred slab. The old top-left pill sat on raw
+   thumbnail and washed out against bright frames. */
+.reel-tag {
+  position: absolute;
+  left: 10px;
+  bottom: 10px;
+  z-index: 2;
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  max-width: calc(100% - 20px);
+  padding: 7px 13px 7px 9px;
+  border-radius: 4px 11px 11px 4px;
+  background: linear-gradient(90deg, rgba(10, 10, 9, 0.94), rgba(10, 10, 9, 0.78));
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 240, 223, 0.16);
+  border-left: 0;
+  box-shadow: 0 8px 20px -10px rgba(0, 0, 0, 0.95);
+  transition: transform 0.4s var(--ease);
+}
+.reel-tag-bar {
+  flex: 0 0 auto;
+  width: 3px;
+  align-self: stretch;
+  min-height: 15px;
+  border-radius: 2px;
+  background: linear-gradient(180deg, var(--gold), var(--acid) 55%, var(--ember));
+  box-shadow: 0 0 9px rgba(255, 138, 31, 0.75);
+  transition: box-shadow 0.4s var(--ease);
+}
+.reel-tag-name {
+  font-family: "Archivo Black", sans-serif;
+  font-size: 0.76rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--ink);
+  text-shadow: 0 1px 5px rgba(0, 0, 0, 0.75);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.reel-card:hover .reel-tag { transform: translateX(4px); }
+.reel-card:hover .reel-tag-bar { box-shadow: 0 0 16px rgba(255, 138, 31, 1); }
 
 .reel-meta { display: block; padding: 14px 4px 4px; }
 .reel-meta strong {
@@ -1063,6 +1097,9 @@ a { color: inherit; }
   overflow: hidden;
   border: 1px solid var(--border);
   background: var(--bg-raised);
+  /* Same as .reel-frame: without an isolated stacking context the rounded
+     clip is ignored for the scaled image and the top corners square off. */
+  isolation: isolate;
 }
 .frame-img img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.6s var(--ease); }
 .frame-card:hover .frame-img img { transform: scale(1.05); }
