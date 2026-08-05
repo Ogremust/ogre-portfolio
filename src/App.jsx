@@ -118,7 +118,7 @@ export default function App() {
             </p>
           )}
         </div>
-        <BookingForm plan={booking?.name} onDone={() => setBooking(null)} />
+        <BookingForm tier={booking?.name ? booking : null} onDone={() => setBooking(null)} />
       </Modal>
     </>
   );

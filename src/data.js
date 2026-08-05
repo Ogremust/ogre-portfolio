@@ -9,7 +9,7 @@ export const SHEET_CSV_URL =
 export const VIDEO_SHEET_CSV_URL =
   "https://docs.google.com/spreadsheets/d/e/2PACX-1vQDMjFftiGf4lMHQOXG7Z2AqAZz9oxEtCqsov2gh3KocXHBX40oJ3PSmSJJhtyYbAeI4PwOhe8d1_g7/pub?gid=1855750606&single=true&output=csv";
 
-export const CONTACT_EMAIL = "dexterchoi462@gmail.com";
+export const CONTACT_EMAIL = "jericmlauresta@gmail.com";
 
 export const stats = [
   { target: 10, suffix: "M+", label: "Views generated" },

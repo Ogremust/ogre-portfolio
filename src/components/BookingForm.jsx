@@ -2,7 +2,7 @@ import { useState } from "react";
 
 const EMPTY = { name: "", email: "", link: "", brief: "" };
 
-export default function BookingForm({ onDone, plan }) {
+export default function BookingForm({ onDone, tier }) {
   const [form, setForm] = useState(EMPTY);
   const [status, setStatus] = useState("idle");
   const [error, setError] = useState("");
@@ -16,9 +16,14 @@ export default function BookingForm({ onDone, plan }) {
     setError("");
 
     try {
-      /* Prefix the brief with the chosen plan so the Telegram message says
-         which tier the enquiry came from. */
-      const payload = plan ? { ...form, brief: `[${plan} plan] ${form.brief}` } : form;
+      /* Send the tier as its own fields so the Telegram message can lead with
+         "NEW RETAINER ENQUIRY" and quote the price. */
+      const payload = {
+        ...form,
+        plan: tier?.name || "",
+        planPrice: tier?.price || "",
+        planUnit: tier?.unit || "",
+      };
       const res = await fetch("/api/send-message", {
         method: "POST",
         headers: { "Content-Type": "application/json" },

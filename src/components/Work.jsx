@@ -1,8 +1,13 @@
 import { useMemo, useState } from "react";
 import { CardSkeleton, Modal, Reveal, SectionHead } from "./ui";
 import { driveImage, drivePreview } from "../lib/sheets";
+import { useMediaQuery } from "../lib/hooks";
 
 const PAGE = 9;
+
+/* Phones get a plain swipeable row instead of the auto-scrolling marquee:
+   nothing moves on its own, and the layout toggle is hidden. */
+const MOBILE_QUERY = "(max-width: 900px)";
 
 function PlayGlyph() {
   return (
@@ -34,7 +39,7 @@ function DataNotice({ status, onRetry }) {
   );
 }
 
-/** One reel tile, shared by the carousel and the grid. */
+/** One reel tile, shared by the carousel, the swipe row and the grid. */
 function ReelCard({ item, onOpen }) {
   const sub = item.client || item.platform;
   return (
@@ -49,13 +54,16 @@ function ReelCard({ item, onOpen }) {
         />
         <span className="reel-scrim" aria-hidden="true" />
         <PlayGlyph />
-        {item.category && <span className="reel-type">{item.category}</span>}
+        {/* Badge carries the piece's own name (e.g. "Pet 1"); the category
+            lives on the filter chips, so repeating it here added nothing. */}
+        <span className="reel-type">{item.title}</span>
         {item.metric && <span className="reel-metric">{item.metric}</span>}
       </span>
-      <span className="reel-meta">
-        <strong>{item.title}</strong>
-        {sub && <span>{sub}</span>}
-      </span>
+      {sub && (
+        <span className="reel-meta">
+          <span>{sub}</span>
+        </span>
+      )}
     </button>
   );
 }
@@ -65,6 +73,8 @@ export function VideoWork({ items, status }) {
   const [shown, setShown] = useState(PAGE);
   const [active, setActive] = useState(null);
   const [view, setView] = useState("carousel");
+  const isMobile = useMediaQuery(MOBILE_QUERY);
+  const mode = isMobile ? "swipe" : view;
 
   const categories = useMemo(
     () => ["All", ...new Set(items.map((i) => i.category).filter(Boolean))],
@@ -117,21 +127,23 @@ export function VideoWork({ items, status }) {
           </div>
         )}
 
-        <div className="view-toggle" role="group" aria-label="Layout">
-          {[
-            ["carousel", "Reel"],
-            ["grid", "Grid"],
-          ].map(([id, label]) => (
-            <button
-              key={id}
-              className={`view-btn${view === id ? " is-active" : ""}`}
-              aria-pressed={view === id}
-              onClick={() => setView(id)}
-            >
-              {label}
-            </button>
-          ))}
-        </div>
+        {!isMobile && (
+          <div className="view-toggle" role="group" aria-label="Layout">
+            {[
+              ["carousel", "Reel"],
+              ["grid", "Grid"],
+            ].map(([id, label]) => (
+              <button
+                key={id}
+                className={`view-btn${view === id ? " is-active" : ""}`}
+                aria-pressed={view === id}
+                onClick={() => setView(id)}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+        )}
       </Reveal>
 
       {status === "loading" && (
@@ -140,7 +152,17 @@ export function VideoWork({ items, status }) {
         </div>
       )}
 
-      {status === "ready" && view === "carousel" && (
+      {status === "ready" && mode === "swipe" && (
+        <div className="swipe-row" role="list" aria-label="Work">
+          {filtered.map((item, i) => (
+            <div role="listitem" key={`${item.id}-${i}`}>
+              <ReelCard item={item} onOpen={setActive} />
+            </div>
+          ))}
+        </div>
+      )}
+
+      {status === "ready" && mode === "carousel" && (
         <div className="reel-river" aria-label="Work carousel">
           <div className="reel-river-track">
             {[0, 1].map((copy) => (
@@ -155,7 +177,7 @@ export function VideoWork({ items, status }) {
         </div>
       )}
 
-      {status === "ready" && view === "grid" && (
+      {status === "ready" && mode === "grid" && (
         <div className="reel-grid">
           {visible.map((item, i) => (
             <Reveal key={`${item.id}-${i}`} delay={(i % 3) * 70} variant="flare">
@@ -169,7 +191,7 @@ export function VideoWork({ items, status }) {
         <DataNotice status={status} onRetry={() => window.location.reload()} />
       )}
 
-      {status === "ready" && view === "grid" && shown < filtered.length && (
+      {status === "ready" && mode === "grid" && shown < filtered.length && (
         <Reveal className="more-wrap" variant="lift">
           <button className="btn btn--ghost" onClick={() => setShown((s) => s + PAGE)}>
             <span className="btn-label">Load more ({filtered.length - shown} left)</span>
@@ -213,6 +235,8 @@ function FrameCard({ item, onOpen }) {
 export function ImageWork({ items, status }) {
   const [active, setActive] = useState(null);
   const [view, setView] = useState("carousel");
+  const isMobile = useMediaQuery(MOBILE_QUERY);
+  const mode = isMobile ? "swipe" : view;
 
   const riverItems = useMemo(() => {
     if (!items.length) return [];
@@ -231,6 +255,7 @@ export function ImageWork({ items, status }) {
         lede="Direct-response concepts mapped to awareness stage — each one opens with the prompt and the reasoning behind it."
       />
 
+      {!isMobile && (
       <Reveal className="work-controls work-controls--end" variant="lift">
         <div className="view-toggle" role="group" aria-label="Layout">
           {[
@@ -248,6 +273,7 @@ export function ImageWork({ items, status }) {
           ))}
         </div>
       </Reveal>
+      )}
 
       {status === "loading" && (
         <div className="frame-grid">
@@ -255,7 +281,17 @@ export function ImageWork({ items, status }) {
         </div>
       )}
 
-      {status === "ready" && view === "carousel" && (
+      {status === "ready" && mode === "swipe" && (
+        <div className="swipe-row swipe-row--frames" role="list" aria-label="Static creative">
+          {items.map((item, i) => (
+            <div role="listitem" key={`${item.id}-${i}`}>
+              <FrameCard item={item} onOpen={setActive} />
+            </div>
+          ))}
+        </div>
+      )}
+
+      {status === "ready" && mode === "carousel" && (
         <div className="reel-river frame-river" aria-label="Static creative carousel">
           <div className="reel-river-track">
             {[0, 1].map((copy) => (
@@ -270,7 +306,7 @@ export function ImageWork({ items, status }) {
         </div>
       )}
 
-      {status === "ready" && view === "grid" && (
+      {status === "ready" && mode === "grid" && (
         <div className="frame-grid">
           {items.map((item, i) => (
             <Reveal key={`${item.id}-${i}`} delay={(i % 4) * 70} variant="flare">

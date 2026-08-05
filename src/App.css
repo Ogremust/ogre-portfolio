@@ -206,7 +206,10 @@ a { color: inherit; }
 /* ═══════════════════════════════════════════════
    Layout
 ═══════════════════════════════════════════════ */
-.page { position: relative; z-index: 1; }
+/* `clip` (not hidden) contains the pre-reveal offset of the horizontal reveal
+   variants without creating a scroll container. Without it an un-revealed
+   .reveal--right sits 38px past the right edge and widens the document. */
+.page { position: relative; z-index: 1; overflow-x: clip; }
 
 .section {
   max-width: var(--shell);
@@ -885,6 +888,30 @@ a { color: inherit; }
   to { transform: translate3d(calc(-50% - clamp(0.45rem, 1vw, 0.7rem)), 0, 0); }
 }
 
+/* ── Mobile swipe row ──────────────────────
+   Phones get native horizontal scrolling with snap points instead of the
+   auto-scrolling marquee — nothing moves unless the user moves it. */
+.swipe-row {
+  display: flex;
+  gap: clamp(0.7rem, 3vw, 1.1rem);
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  -webkit-overflow-scrolling: touch;
+  scroll-snap-type: x mandatory;
+  scroll-padding-inline: var(--gutter);
+  margin-inline: calc(var(--gutter) * -1);
+  padding-inline: var(--gutter);
+  padding-bottom: 6px;
+  scrollbar-width: none;
+}
+.swipe-row::-webkit-scrollbar { display: none; }
+.swipe-row > * {
+  flex: 0 0 auto;
+  width: min(62vw, 230px);
+  scroll-snap-align: start;
+}
+.swipe-row--frames > * { width: min(72vw, 280px); }
+
 .river-hint {
   margin-top: 18px;
   text-align: center;
@@ -995,10 +1022,17 @@ a { color: inherit; }
 }
 .reel-type {
   left: 12px;
-  background: rgba(13, 13, 12, 0.75);
+  max-width: calc(100% - 24px);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  background: rgba(13, 13, 12, 0.78);
   color: var(--ink);
   border: 1px solid var(--border);
 }
+/* Leave room for the metric pill when both are present */
+.reel-metric ~ .reel-type,
+.reel-frame:has(.reel-metric) .reel-type { max-width: calc(60% - 12px); }
 .reel-metric {
   right: 12px;
   background: var(--acid);
@@ -1826,6 +1860,9 @@ body.cursor-down .cursor-ring { width: 26px; height: 26px; margin: -13px 0 0 -13
 }
 
 @media (max-width: 620px) {
+  /* Sideways slides read poorly on a narrow screen — fall back to a rise. */
+  .reveal--left, .reveal--right { transform: translate3d(0, 26px, 0); }
+
   /* Keep the headline and CTA inside the first screen instead of making the
      visitor scroll past a full-viewport face. */
   .ogre-avatar { --avatar-max: min(260px, 62vw); }
