@@ -13,14 +13,13 @@ import { Modal } from "./components/ui";
 import { SHEET_CSV_URL, VIDEO_SHEET_CSV_URL } from "./data";
 import { buildImagePortfolio, buildVideoPortfolio, useGoogleSheet } from "./lib/sheets";
 
-/* Intro plays once per browser session, not on every navigation. */
-const INTRO_KEY = "ogre:intro-seen";
-
+/* The intro plays on every full page load — it's the brand moment, and at
+   1.5s it's short enough not to be a toll. To make it once-per-browser-session
+   instead, gate it on sessionStorage.getItem("ogre:intro-seen") here. */
 export default function App() {
   const [intro, setIntro] = useState(() => {
     if (typeof window === "undefined") return false;
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return false;
-    return sessionStorage.getItem(INTRO_KEY) !== "1";
+    return !window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   });
   /* Holds the tier the visitor clicked, so the booking modal can name the plan
      they picked instead of showing an identical generic form for all three. */

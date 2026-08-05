@@ -407,8 +407,8 @@ a { color: inherit; }
 /* backdrop-filter is expensive — v1 used it on every card. Here: nav + modals only. */
 .nav.is-scrolled .nav-inner {
   background: rgba(13, 13, 12, 0.72);
-  backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
+  backdrop-filter: blur(16px);
   border-color: var(--border);
   box-shadow: 0 12px 40px -18px rgba(0, 0, 0, 0.9);
 }
@@ -487,8 +487,8 @@ a { color: inherit; }
   max-width: 100vw;
   z-index: 85;
   background: rgba(13, 13, 12, 0.97);
-  backdrop-filter: blur(18px);
   -webkit-backdrop-filter: blur(18px);
+  backdrop-filter: blur(18px);
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -1042,8 +1042,8 @@ a { color: inherit; }
   padding: 7px 13px 7px 9px;
   border-radius: 4px 11px 11px 4px;
   background: linear-gradient(90deg, rgba(10, 10, 9, 0.94), rgba(10, 10, 9, 0.78));
-  backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
   border: 1px solid rgba(255, 240, 223, 0.16);
   border-left: 0;
   box-shadow: 0 8px 20px -10px rgba(0, 0, 0, 0.95);
@@ -1619,8 +1619,8 @@ a { color: inherit; }
   /* Extra top inset so the panel clears the fixed nav instead of tucking under it */
   padding: clamp(88px, 12vh, 120px) var(--gutter) clamp(28px, 6vh, 56px);
   background: rgba(6, 6, 5, 0.86);
-  backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
   animation: fadeIn 0.28s var(--ease);
 }
 @keyframes fadeIn { from { opacity: 0; } }
