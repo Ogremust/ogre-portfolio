@@ -85,7 +85,11 @@ export default function Hero({ onBook, onGo }) {
               <span className={`title-line title-line--${line.tone}`} key={li}>
                 {line.words.map((word, wi) => (
                   <span className="title-word" key={wi} style={{ "--d": `${(li * 2 + wi) * 90 + 120}ms` }}>
-                    <span className="title-ink">{word}</span>
+                    {/* data-text feeds the ::before glow layer, which re-draws the
+                        same glyphs masked to the orange bands only. */}
+                    <span className="title-ink" data-text={word}>
+                      {word}
+                    </span>
                   </span>
                 ))}
               </span>

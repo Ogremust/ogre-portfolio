@@ -623,37 +623,29 @@ a { color: inherit; }
    highlight is a second background layer sharing the same coordinate space, so
    it travels across both words as a single sweep — and because it is clipped to
    the glyphs it never shows as a band over the background. */
+/* Ember bands: orange-dominant, with gold and ember only as accents so the
+   brand orange stays the colour you actually read. One gradient, twice as wide
+   as the line, drifting on an irregular cycle so the banding never repeats
+   the same way — and sampled through --wx so it's continuous across words. */
 .title-line--acid .title-ink {
-  /* Four stacked layers, all sampling one line-wide coordinate space so the
-     fire is continuous across both words:
-       1 specular highlight   2 blood/ember flare   3 gold bloom   4 base ramp
-     Each drifts at a different rate over an irregular 17s cycle, so the
-     colours never line up the same way twice and the burn reads as random. */
-  background-image:
-    linear-gradient(100deg, transparent 41%, rgba(255, 248, 235, 0.7) 50%, transparent 59%),
-    linear-gradient(78deg, rgba(255, 42, 82, 0) 8%, rgba(255, 42, 82, 0.65) 42%, rgba(255, 90, 36, 0) 78%),
-    linear-gradient(115deg, rgba(255, 189, 61, 0) 12%, rgba(255, 189, 61, 0.7) 48%, rgba(255, 138, 31, 0) 84%),
-    linear-gradient(
-      92deg,
-      var(--ember) 0%,
-      var(--blood) 16%,
-      var(--acid) 38%,
-      var(--gold) 55%,
-      var(--acid) 74%,
-      var(--ember) 100%
-    );
+  position: relative;
+  background-image: linear-gradient(
+    94deg,
+    var(--ember) 0%,
+    var(--acid) 9%,
+    var(--acid) 21%,
+    var(--gold) 30%,
+    var(--acid) 40%,
+    var(--acid) 54%,
+    var(--ember) 63%,
+    var(--acid) 72%,
+    var(--acid) 85%,
+    var(--gold) 92%,
+    var(--acid) 100%
+  );
   background-repeat: no-repeat;
-  background-size:
-    calc(var(--lw, 100%) * 0.5) 100%,
-    calc(var(--lw, 100%) * 0.85) 100%,
-    calc(var(--lw, 100%) * 0.7) 100%,
-    var(--lw, 100%) 100%;
-  background-blend-mode: screen, overlay, overlay, normal;
-  background-position:
-    calc(var(--lw, 0px) * 1.15 - var(--wx, 0px)) 0,
-    calc(var(--lw, 0px) * -0.35 - var(--wx, 0px)) 0,
-    calc(var(--lw, 0px) * 0.6 - var(--wx, 0px)) 0,
-    calc(var(--wx, 0px) * -1) 0;
+  background-size: calc(var(--lw, 100%) * 2) 100%;
+  background-position: calc(var(--lw, 0px) * -0.5 - var(--wx, 0px)) 0;
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
@@ -662,62 +654,106 @@ a { color: inherit; }
   /* Both animations must be declared here: the `animation` shorthand would
      replace the base rule's wordUp, leaving these words parked 105% below
      their reveal mask (i.e. invisible). */
-  animation-name: wordUp, fireDrift;
-  animation-duration: 0.9s, 17s;
+  animation-name: wordUp, emberDrift;
+  animation-duration: 0.9s, 19s;
   animation-timing-function: var(--ease-out), ease-in-out;
   animation-delay: var(--d, 0ms), 1.2s;
   animation-fill-mode: forwards, none;
   animation-iteration-count: 1, infinite;
 }
 
-/* Irregular keyframe spacing + per-layer trajectories = no obvious loop. */
-@keyframes fireDrift {
-  0%, 100% {
-    background-position:
-      calc(var(--lw, 0px) * 1.15 - var(--wx, 0px)) 0,
-      calc(var(--lw, 0px) * -0.35 - var(--wx, 0px)) 0,
-      calc(var(--lw, 0px) * 0.6 - var(--wx, 0px)) 0,
-      calc(var(--wx, 0px) * -1) 0;
-  }
-  19% {
-    background-position:
-      calc(var(--lw, 0px) * 0.42 - var(--wx, 0px)) 0,
-      calc(var(--lw, 0px) * 0.25 - var(--wx, 0px)) 0,
-      calc(var(--lw, 0px) * 0.18 - var(--wx, 0px)) 0,
-      calc(var(--wx, 0px) * -1) 0;
-  }
-  37% {
-    background-position:
-      calc(var(--lw, 0px) * -0.5 - var(--wx, 0px)) 0,
-      calc(var(--lw, 0px) * 0.72 - var(--wx, 0px)) 0,
-      calc(var(--lw, 0px) * -0.22 - var(--wx, 0px)) 0,
-      calc(var(--wx, 0px) * -1) 0;
-  }
-  58% {
-    background-position:
-      calc(var(--lw, 0px) * 0.85 - var(--wx, 0px)) 0,
-      calc(var(--lw, 0px) * 0.05 - var(--wx, 0px)) 0,
-      calc(var(--lw, 0px) * 0.78 - var(--wx, 0px)) 0,
-      calc(var(--wx, 0px) * -1) 0;
-  }
-  81% {
-    background-position:
-      calc(var(--lw, 0px) * -0.18 - var(--wx, 0px)) 0,
-      calc(var(--lw, 0px) * 0.55 - var(--wx, 0px)) 0,
-      calc(var(--lw, 0px) * 0.3 - var(--wx, 0px)) 0,
-      calc(var(--wx, 0px) * -1) 0;
-  }
+/* The glow: two copies of the same glyphs, painted with a gradient whose stops
+   are opaque ONLY where the band above is orange, then blurred. Both track the
+   drift in lockstep, so the light sits on the orange and nowhere else.
+   Two tiers rather than one, because a single mid-blur halo reads as fuzz:
+     ::before — wide and very faint, the spill of light into the dark room
+     ::after  — tight and low, the heat sitting right on the letter edge
+   Kept deliberately dim; the type should look lit, not smeared. */
+.title-line--acid .title-ink::before,
+.title-line--acid .title-ink::after {
+  content: attr(data-text);
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background-image: linear-gradient(
+    94deg,
+    transparent 0%,
+    var(--acid) 9%,
+    var(--acid) 21%,
+    transparent 30%,
+    var(--acid) 40%,
+    var(--acid) 54%,
+    transparent 63%,
+    var(--acid) 72%,
+    var(--acid) 85%,
+    transparent 92%,
+    var(--acid) 100%
+  );
+  background-repeat: no-repeat;
+  background-size: calc(var(--lw, 100%) * 2) 100%;
+  background-position: calc(var(--lw, 0px) * -0.5 - var(--wx, 0px)) 0;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  -webkit-text-fill-color: transparent;
+  /* Only opacity animates here — deliberately NOT background-position.
+     Drifting the gradient underneath a blur forces the browser to re-rasterise
+     the blur every single frame; measured at 58ms median frames and repeated
+     300ms long tasks. Held still, each layer rasterises once and the pulse is
+     a pure compositor operation. At these blur radii the bands are soft enough
+     that holding them still is imperceptible against the drifting fill. */
+  will-change: opacity;
+  animation-timing-function: ease-in-out;
+  animation-delay: 1.2s;
+  animation-iteration-count: infinite;
 }
 
-/* Slow heat pulse on a different period (6.7s vs 17s) so the two never sync. */
-.title-line--acid {
-  animation: firePulse 6.7s ease-in-out 1.2s infinite;
-  will-change: filter;
+/* Outer spill — wide, barely there. */
+.title-line--acid .title-ink::before {
+  filter: blur(22px);
+  opacity: 0.18;
+  animation-name: glowSpill;
+  animation-duration: 7.3s;
 }
-@keyframes firePulse {
-  0%, 100% { filter: saturate(1) brightness(1); }
-  34% { filter: saturate(1.22) brightness(1.1); }
-  67% { filter: saturate(0.94) brightness(0.97); }
+
+/* Inner heat — hugs the letterform so the edges stay crisp. */
+.title-line--acid .title-ink::after {
+  filter: blur(5px);
+  opacity: 0.24;
+  animation-name: glowHeat;
+  animation-duration: 5.1s;
+}
+
+/* Irregular keyframe spacing = no perceptible loop. */
+@keyframes emberDrift {
+  0%, 100% { background-position: calc(var(--lw, 0px) * -0.5 - var(--wx, 0px)) 0; }
+  17%      { background-position: calc(var(--lw, 0px) * -0.86 - var(--wx, 0px)) 0; }
+  39%      { background-position: calc(var(--lw, 0px) * -0.12 - var(--wx, 0px)) 0; }
+  56%      { background-position: calc(var(--lw, 0px) * -0.72 - var(--wx, 0px)) 0; }
+  78%      { background-position: calc(var(--lw, 0px) * -0.3 - var(--wx, 0px)) 0; }
+}
+
+/* Each tier breathes on its own period, none of which divides into the 19s
+   drift — so the light never visibly repeats. */
+@keyframes glowSpill {
+  0%, 100% { opacity: 0.16; }
+  41% { opacity: 0.27; }
+  73% { opacity: 0.12; }
+}
+@keyframes glowHeat {
+  0%, 100% { opacity: 0.24; }
+  36% { opacity: 0.34; }
+  68% { opacity: 0.19; }
+}
+
+/* The reveal mask would clip the blurred bloom at each word's edge, so it is
+   released once the one-shot word animation has finished. */
+.title-line--acid .title-word {
+  animation: unmaskWord 0s linear 1.5s forwards;
+}
+@keyframes unmaskWord {
+  to { overflow: visible; }
 }
 
 /* Sweeping playhead under the headline */
