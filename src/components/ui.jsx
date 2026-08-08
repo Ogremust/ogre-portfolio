@@ -97,8 +97,8 @@ export function MagneticButton({ children, onClick, className = "", variant = "s
 }
 
 /** Animated stat. Counts on scroll-in, writes text straight to the node. */
-export function Stat({ target, prefix = "", suffix = "", label }) {
-  const ref = useCounter(target);
+export function Stat({ target, prefix = "", suffix = "", label, start = true }) {
+  const ref = useCounter(target, { start });
   return (
     <div className="stat">
       <strong className="stat-value">

@@ -80,7 +80,7 @@ export default function App() {
       <Nav onBook={openBooking} onGo={go} />
 
       <main className="page">
-        <Hero onBook={openBooking} onGo={go} />
+        <Hero onBook={openBooking} onGo={go} ready={!intro} />
         <VideoWork items={videos.data} status={videos.status} />
         <ImageWork items={images.data} status={images.status} />
         <Services />

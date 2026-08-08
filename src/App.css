@@ -531,10 +531,12 @@ a { color: inherit; }
   background: var(--bg);
   animation: introOut 0.45s var(--ease) 1.05s forwards;
 }
+/* Settles by 0.75s so the mark gets a beat to hold before the 1.05s fade,
+   instead of arriving and leaving in the same motion. */
 .intro-mark {
   width: clamp(140px, 30vw, 260px);
   height: clamp(140px, 30vw, 260px);
-  animation: introMark 1s var(--ease-out) both;
+  animation: introMark 0.75s var(--ease-out) both;
 }
 @keyframes introMark {
   0% { opacity: 0; transform: scale(0.72) rotate(-7deg); }
@@ -543,6 +545,22 @@ a { color: inherit; }
 }
 @keyframes introOut {
   to { opacity: 0; visibility: hidden; }
+}
+
+/* Hold the hero's entrance until the intro clears.
+   The word reveals (120–390ms delay, 0.9s long), the playhead sweep and the
+   stat counters all used to finish by ~1.4s — entirely behind the overlay. The
+   page then faded in already settled, which is why the intro read as broken.
+   Pausing during the delay means each animation resumes from the top. */
+body.is-intro .title-word,
+body.is-intro .title-ink,
+body.is-intro .title-ink::before,
+body.is-intro .title-ink::after,
+body.is-intro .playhead,
+body.is-intro .pulse-dot,
+body.is-intro .scroll-cue-line,
+body.is-intro .marquee-track {
+  animation-play-state: paused;
 }
 
 /* ═══════════════════════════════════════════════

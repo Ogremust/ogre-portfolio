@@ -73,12 +73,16 @@ export const useReveal = () => {
   return ref;
 };
 
-/** Count up to `target` when scrolled into view. Writes to the DOM directly — no re-render per frame. */
-export const useCounter = (target, { duration = 1400, decimals = 0 } = {}) => {
+/**
+ * Count up to `target` when scrolled into view. Writes to the DOM directly —
+ * no re-render per frame. `start` gates it so the count doesn't run (and
+ * finish) while the intro overlay is still covering the hero.
+ */
+export const useCounter = (target, { duration = 1400, decimals = 0, start = true } = {}) => {
   const ref = useRef(null);
   useEffect(() => {
     const el = ref.current;
-    if (!el) return;
+    if (!el || !start) return undefined;
     const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     if (reduced) {
       el.textContent = target.toFixed(decimals);
@@ -90,9 +94,9 @@ export const useCounter = (target, { duration = 1400, decimals = 0 } = {}) => {
       ([entry], obs) => {
         if (!entry.isIntersecting) return;
         obs.disconnect();
-        const start = performance.now();
+        const t0 = performance.now();
         const tick = (now) => {
-          const t = Math.min((now - start) / duration, 1);
+          const t = Math.min((now - t0) / duration, 1);
           const eased = 1 - Math.pow(1 - t, 3);
           el.textContent = (target * eased).toFixed(decimals);
           if (t < 1) raf = requestAnimationFrame(tick);
@@ -106,7 +110,7 @@ export const useCounter = (target, { duration = 1400, decimals = 0 } = {}) => {
       io.disconnect();
       cancelAnimationFrame(raf);
     };
-  }, [target, duration, decimals]);
+  }, [target, duration, decimals, start]);
   return ref;
 };
 

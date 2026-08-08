@@ -14,7 +14,7 @@ const LINES = [
   { tone: "acid", words: ["Roar", "out."] },
 ];
 
-export default function Hero({ onBook, onGo }) {
+export default function Hero({ onBook, onGo, ready = true }) {
   const artRef = useRef(null);
   const titleRef = useRef(null);
 
@@ -111,7 +111,7 @@ export default function Hero({ onBook, onGo }) {
 
           <div className="hero-stats">
             {stats.map((s) => (
-              <Stat key={s.label} {...s} />
+              <Stat key={s.label} {...s} start={ready} />
             ))}
           </div>
         </div>
