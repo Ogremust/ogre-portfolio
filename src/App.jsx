@@ -28,14 +28,7 @@ export default function App() {
   const videos = useGoogleSheet(VIDEO_SHEET_CSV_URL, buildVideoPortfolio);
   const images = useGoogleSheet(SHEET_CSV_URL, buildImagePortfolio);
 
-  const dismissIntro = useCallback(() => {
-    setIntro(false);
-    try {
-      sessionStorage.setItem(INTRO_KEY, "1");
-    } catch {
-      /* private mode — intro simply replays */
-    }
-  }, []);
+  const dismissIntro = useCallback(() => setIntro(false), []);
 
   useEffect(() => {
     if (!intro) return;

@@ -67,33 +67,46 @@ export const process = [
   ["04", "Ship", "Final files are exported for the platform, format, and campaign you are actually using."],
 ];
 
-/* ⚠️ PLACEHOLDER PRICING — set your real numbers before launch.
-   Listing a starting price filters out tire-kickers; the FAQ already
-   references retainers and a 5-video minimum, so these mirror that. */
 export const pricing = [
   {
-    name: "Batch",
-    price: "$450",
-    unit: "/ 5 videos",
-    blurb: "For creators testing short-form at volume.",
-    features: ["5 edited shorts", "Hook + caption pass", "2 revision rounds", "48h turnaround"],
-    cta: "Start a batch",
+    name: "Concept",
+    price: "$500",
+    unit: "/ concept",
+    blurb: "One concept, built to be tested — VSL, short-form, whatever the angle needs.",
+    features: [
+      "1 video + 3 hook variants",
+      "VSL, short-form or UGC",
+      "12h turnaround per concept",
+      "2 revisions per concept",
+    ],
+    cta: "Start a concept",
   },
   {
     name: "Retainer",
-    price: "$1,800",
+    price: "$2,500",
     unit: "/ month",
-    blurb: "For brands scaling organic and paid social.",
-    features: ["20 edited shorts", "Thumbnail frames included", "Priority 24h turnaround", "Direct Telegram line", "Monthly performance review"],
+    blurb: "For brands that need volume and someone thinking about the angle.",
+    features: [
+      "2 concepts per day, 3 hooks each",
+      "Prioritised queue",
+      "1 revision per concept",
+      "Direct WhatsApp line",
+      "Creative strategy included",
+    ],
     cta: "Book a call",
     featured: true,
   },
   {
     name: "Custom",
-    price: "Let's talk",
-    unit: "",
-    blurb: "Long-form, launches, or multi-brand volume.",
-    features: ["Scoped to your campaign", "Dedicated turnaround SLA", "Team onboarding"],
+    price: "Hourly",
+    unit: "rate",
+    blurb: "Anything outside the standard scope — you name it, we scope it.",
+    features: [
+      "Billed by the hour",
+      "Funnel + landing page builds",
+      "Long-form, launches, multi-brand",
+      "Whatever the campaign needs",
+    ],
     cta: "Get a quote",
   },
 ];
